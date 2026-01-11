@@ -1,157 +1,279 @@
 <?php
-require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/auth_check.php';
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/header.php';
 
-/* =======================
-   AMBIL DATA UNTUK CHART
-   ======================= */
+// --- QUERY DATA AMAN (ANTI ERROR 0000-00-00) ---
 
-// Grafik 1 – Stok Produk
-$q_stock = mysqli_query($conn, "
-    SELECT name, stock 
-    FROM products 
-    ORDER BY name ASC
-");
+// 1. DATA STOK PRODUK (Top 10)
+$q_stock = mysqli_query($conn, "SELECT name, stock FROM products ORDER BY stock DESC LIMIT 10");
 $labels_stock = [];
 $values_stock = [];
-
 while ($row = mysqli_fetch_assoc($q_stock)) {
     $labels_stock[] = $row['name'];
     $values_stock[] = $row['stock'];
 }
 
-// Grafik 2 – Stok Masuk per Hari
+// 2. DATA STOK MASUK
+// Trik: Filter date > '2000-01-01' otomatis membuang NULL dan 0000-00-00 tanpa bikin error
 $q_in = mysqli_query($conn, "
-    SELECT date, SUM(qty) as total
+    SELECT `date`, SUM(qty) as total
     FROM stock_in
-    GROUP BY date
-    ORDER BY date ASC
+    WHERE `date` > '2000-01-01' 
+    GROUP BY `date`
+    ORDER BY `date` ASC
 ");
 $labels_in = [];
 $values_in = [];
-
+$raw_data_in = [];
 while ($row = mysqli_fetch_assoc($q_in)) {
-    $labels_in[] = $row['date'];
-    $values_in[] = $row['total'];
+    $tgl = date('d-m-Y', strtotime($row['date']));
+    $labels_in[] = $tgl;
+    $values_in[] = (int)$row['total'];
+    $raw_data_in[] = ['tgl' => $tgl, 'total' => $row['total']];
 }
 
-// Grafik 3 – Stok Keluar per Hari
+// 3. DATA STOK KELUAR
 $q_out = mysqli_query($conn, "
-    SELECT date, SUM(qty) as total
+    SELECT `date`, SUM(qty) as total
     FROM stock_out
-    GROUP BY date
-    ORDER BY date ASC
+    WHERE `date` > '2000-01-01'
+    GROUP BY `date`
+    ORDER BY `date` ASC
 ");
-
 $labels_out = [];
 $values_out = [];
-
+$raw_data_out = [];
 while ($row = mysqli_fetch_assoc($q_out)) {
-    $labels_out[] = $row['date'];
-    $values_out[] = $row['total'];
+    $tgl = date('d-m-Y', strtotime($row['date']));
+    $labels_out[] = $tgl;
+    $values_out[] = (int)$row['total'];
+    $raw_data_out[] = ['tgl' => $tgl, 'total' => $row['total']];
 }
-
 ?>
 
 <style>
+.main-content {
+    margin-left: 260px;
+    padding: 30px;
+    background-color: #f4f6f9;
+    min-height: 100vh;
+}
+
+.page-header {
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
+}
+
+/* Layout Grid Grafik */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
 .chart-card {
     background: white;
-    padding: 25px;
-    border-radius: 14px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.12);
-    margin-bottom: 30px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eee;
 }
+
 .chart-title {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: bold;
-    color: #ff8800;
-    margin-bottom: 12px;
+    color: #333;
+    margin-bottom: 15px;
+    border-left: 4px solid #ff8800;
+    padding-left: 10px;
+}
+
+.canvas-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* Tabel Debug Data */
+.debug-area {
+    margin-top: 30px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.debug-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 13px;
+}
+
+.debug-table th,
+.debug-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.debug-table th {
+    background: #f8f9fa;
+}
+
+/* Alert jika offline */
+#offline-alert {
+    display: none;
+    background: #ffebee;
+    color: #c62828;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #ef9a9a;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        padding: 15px;
+    }
+
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"
+    onerror="document.getElementById('offline-alert').style.display='block';"></script>
 
-<div class="title">Analitik Inventori</div>
-<div class="subtitle">Grafik visual stok & aktivitas barang.</div>
+<div class="main-content">
 
-<!-- GRAFIK STOK PRODUK -->
-<div class="chart-card">
-    <div class="chart-title">📦 Stok Produk Saat Ini</div>
-    <canvas id="chartStock"></canvas>
-</div>
+    <div id="offline-alert">
+        <strong>⚠️ Masalah Koneksi:</strong> Grafik tidak dapat dimuat karena komputer tidak terhubung ke internet. <br>
+        (Script Chart.js membutuhkan koneksi internet untuk berjalan).
+    </div>
 
-<!-- GRAFIK STOK MASUK -->
-<div class="chart-card">
-    <div class="chart-title">⬆️ Grafik Stok Masuk per Tanggal</div>
-    <canvas id="chartIn"></canvas>
-</div>
+    <div class="page-header">
+        <h1>📈 Dashboard Analitik</h1>
+        <p>Visualisasi Data Stok Masuk & Keluar</p>
+    </div>
 
-<!-- GRAFIK STOK KELUAR -->
-<div class="chart-card">
-    <div class="chart-title">⬇️ Grafik Stok Keluar per Tanggal</div>
-    <canvas id="chartOut"></canvas>
+    <div class="chart-card" style="margin-bottom: 30px;">
+        <div class="chart-title">📦 Top 10 Stok Barang Terbanyak</div>
+        <div class="canvas-container">
+            <canvas id="chartStock"></canvas>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-card">
+            <div class="chart-title" style="border-color: #27ae60;">⬆️ Grafik Barang Masuk</div>
+            <div class="canvas-container">
+                <canvas id="chartIn"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-title" style="border-color: #c0392b;">⬇️ Grafik Barang Keluar</div>
+            <div class="canvas-container">
+                <canvas id="chartOut"></canvas>
+            </div>
+        </div>
+    </div>
+
+
 </div>
 
 <script>
-// ---- DATA DARI PHP ----
-const labelsStock = <?= json_encode($labels_stock); ?>;
-const valuesStock = <?= json_encode($values_stock); ?>;
+// Cek apakah Chart.js berhasil di-load
+if (typeof Chart === 'undefined') {
+    document.getElementById('offline-alert').style.display = 'block';
+} else {
 
-const labelsIn = <?= json_encode($labels_in); ?>;
-const valuesIn = <?= json_encode($values_in); ?>;
+    // Settingan Umum agar font enak dibaca
+    Chart.defaults.font.family = "'Segoe UI', sans-serif";
+    Chart.defaults.font.size = 12;
 
-const labelsOut = <?= json_encode($labels_out); ?>;
-const valuesOut = <?= json_encode($values_out); ?>;
+    // 1. CHART STOK (BAR)
+    new Chart(document.getElementById('chartStock'), {
+        type: 'bar',
+        data: {
+            labels: <?= json_encode($labels_stock) ?>,
+            datasets: [{
+                label: 'Stok Unit',
+                data: <?= json_encode($values_stock) ?>,
+                backgroundColor: '#ff8800',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
 
-// ========================
-// 1. GRAFIK STOK PRODUK
-// ========================
-new Chart(document.getElementById('chartStock'), {
-    type: 'bar',
-    data: {
-        labels: labelsStock,
-        datasets: [{
-            label: 'Jumlah Stok',
-            data: valuesStock,
-            backgroundColor: '#ff8800'
-        }]
-    }
-});
+    // 2. CHART MASUK (BAR)
+    new Chart(document.getElementById('chartIn'), {
+        type: 'bar',
+        data: {
+            labels: <?= json_encode($labels_in) ?>,
+            datasets: [{
+                label: 'Total Masuk',
+                data: <?= json_encode($values_in) ?>,
+                backgroundColor: 'rgba(39, 174, 96, 0.7)', // Hijau solid
+                borderColor: '#27ae60',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
 
-// ========================
-// 2. GRAFIK STOK MASUK
-// ========================
-new Chart(document.getElementById('chartIn'), {
-    type: 'line',
-    data: {
-        labels: labelsIn,
-        datasets: [{
-            label: 'Stok Masuk',
-            data: valuesIn,
-            borderColor: '#28a745',
-            backgroundColor: 'rgba(40,167,69,0.2)',
-            tension: 0.3
-        }]
-    }
-});
-
-// ========================
-// 3. GRAFIK STOK KELUAR
-// ========================
-new Chart(document.getElementById('chartOut'), {
-    type: 'line',
-    data: {
-        labels: labelsOut,
-        datasets: [{
-            label: 'Stok Keluar',
-            data: valuesOut,
-            borderColor: '#d32f2f',
-            backgroundColor: 'rgba(211,47,47,0.2)',
-            tension: 0.3
-        }]
-    }
-});
+    // 3. CHART KELUAR (BAR)
+    new Chart(document.getElementById('chartOut'), {
+        type: 'bar',
+        data: {
+            labels: <?= json_encode($labels_out) ?>,
+            datasets: [{
+                label: 'Total Keluar',
+                data: <?= json_encode($values_out) ?>,
+                backgroundColor: 'rgba(192, 57, 43, 0.7)', // Merah solid
+                borderColor: '#c0392b',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
 </script>
 
-</body>
-</html>
+<?php
+// require_once __DIR__ . '/../includes/footer.php'; 
+?>
