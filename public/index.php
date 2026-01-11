@@ -1,113 +1,105 @@
 <?php
-// ========================
-// CEK LOGIN WAJIB ADA
-// ========================
-session_start();
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
+session_start();
+require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../config/database.php';
+
+// CEK LOGIN
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
-    exit();
+    exit;
 }
 
-// Header template
-require_once __DIR__ . '/../includes/header.php';
+// TOTAL PRODUK AKTIF
+$qProduk = mysqli_query($conn, "SELECT COUNT(*) AS total FROM products WHERE is_active = 1");
+$totalProduk = mysqli_fetch_assoc($qProduk)['total'] ?? 0;
+
+// TOTAL STOK
+$qStok = mysqli_query($conn, "SELECT SUM(stock) AS total FROM products WHERE is_active = 1");
+$totalStok = mysqli_fetch_assoc($qStok)['total'] ?? 0;
+
+// TOTAL TRANSAKSI
+$qTransaksi = mysqli_query($conn, "SELECT COUNT(*) AS total FROM stock_history");
+$totalTransaksi = mysqli_fetch_assoc($qTransaksi)['total'] ?? 0;
 ?>
 
-<style>
-    .dashboard-container {
-        padding: 25px;
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard | Toko Hanna</title>
+
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #fff6ec;
+        margin: 0;
     }
 
-    .title {
-        font-size: 38px;
+    .dashboard {
+        padding: 30px;
+    }
+
+    h1 {
         color: #ff8800;
-        font-weight: 700;
-        margin-bottom: 6px;
+        margin-bottom: 25px;
     }
 
-    .subtitle {
-        font-size: 17px;
-        color: #666;
-        margin-bottom: 35px;
+    .cards {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
     }
 
-    /* GRID MENU */
-    .menu-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-        gap: 22px;
-        margin-top: 20px;
-    }
-
-    /* CARD MENU */
-    .menu-card {
+    .card {
         background: white;
-        padding: 28px;
-        border-radius: 14px;
-        text-align: center;
-        border-top: 6px solid #ff8800;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.12);
-        transition: 0.25s ease;
-        text-decoration: none;
+        padding: 20px;
+        border-radius: 12px;
+        width: 250px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, .1);
+    }
+
+    .card h2 {
         color: #ff8800;
+        margin: 0;
+        font-size: 18px;
+    }
+
+    .card p {
+        font-size: 30px;
         font-weight: bold;
-        display: block;
+        margin-top: 12px;
     }
+    </style>
+</head>
 
-    .menu-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 8px 22px rgba(0,0,0,0.18);
-    }
+<body>
 
-    .menu-card i {
-        font-size: 48px;
-        margin-bottom: 15px;
-        color: #ff8800;
-    }
-</style>
+    <div class="dashboard">
+        <h1>📊 Dashboard Toko Hanna</h1>
 
-<div class="dashboard-container">
+        <div class="cards">
+            <div class="card">
+                <h2>📦 Total Produk</h2>
+                <p><?= $totalProduk ?></p>
+            </div>
 
-    <div class="title">Dashboard Inventori Toko Hanna</div>
-    <div class="subtitle">
-        Selamat datang, <b><?= $_SESSION['fullname'] ?></b> 👋  
-        <br>Silakan pilih menu.
+            <div class="card">
+                <h2>📊 Total Stok</h2>
+                <p><?= $totalStok ?></p>
+            </div>
+
+            <div class="card">
+                <h2>🔁 Total Transaksi</h2>
+                <p><?= $totalTransaksi ?></p>
+            </div>
+        </div>
     </div>
-
-    <div class="menu-grid">
-
-        <!-- Data Produk -->
-        <a href="products.php" class="menu-card">
-            <i class="fa-solid fa-boxes-stacked"></i>
-            <div>Data Produk</div>
-        </a>
-
-        <!-- Stok Masuk & Keluar -->
-        <a href="stock_in_out.php" class="menu-card">
-            <i class="fa-solid fa-arrow-right-arrow-left"></i>
-            <div>Stok Masuk & Keluar</div>
-        </a>
-
-        <!-- Supplier -->
-        <a href="supplier.php" class="menu-card">
-            <i class="fa-solid fa-truck-field"></i>
-            <div>Supplier</div>
-        </a>
-
-        <!-- Laporan -->
-        <a href="report.php" class="menu-card">
-            <i class="fa-solid fa-chart-column"></i>
-            <div>Laporan</div>
-        </a>
-
-        <!-- Analytics -->
-        <a href="analytics.php" class="menu-card">
-            <i class="fa-solid fa-chart-line"></i>
-            <div>Analytics</div>
-        </a>
-
-    </div>
-</div>
 
 </body>
+
 </html>

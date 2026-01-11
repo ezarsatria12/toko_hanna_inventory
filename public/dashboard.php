@@ -4,6 +4,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 session_start();
+require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../config/database.php';
 
 // CEK LOGIN
@@ -27,70 +28,78 @@ $totalTransaksi = mysqli_fetch_assoc($qTransaksi)['total'] ?? 0;
 
 <!DOCTYPE html>
 <html lang="id">
-<head>
-<meta charset="UTF-8">
-<title>Dashboard | Toko Hanna</title>
 
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #fff6ec;
-    margin: 0;
-}
-.dashboard {
-    padding: 30px;
-}
-h1 {
-    color: #ff8800;
-    margin-bottom: 25px;
-}
-.cards {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    width: 250px;
-    box-shadow: 0 4px 10px rgba(0,0,0,.1);
-}
-.card h2 {
-    color: #ff8800;
-    margin: 0;
-    font-size: 18px;
-}
-.card p {
-    font-size: 30px;
-    font-weight: bold;
-    margin-top: 12px;
-}
-</style>
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard | Toko Hanna</title>
+
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #fff6ec;
+        margin: 0;
+    }
+
+    .dashboard {
+        padding: 30px;
+    }
+
+    h1 {
+        color: #ff8800;
+        margin-bottom: 25px;
+    }
+
+    .cards {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        width: 250px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, .1);
+    }
+
+    .card h2 {
+        color: #ff8800;
+        margin: 0;
+        font-size: 18px;
+    }
+
+    .card p {
+        font-size: 30px;
+        font-weight: bold;
+        margin-top: 12px;
+    }
+    </style>
 </head>
 
 <body>
 
-<div class="dashboard">
-    <h1>📊 Dashboard Toko Hanna</h1>
+    <div class="dashboard">
+        <h1>📊 Dashboard Toko Hanna</h1>
 
-    <div class="cards">
-        <div class="card">
-            <h2>📦 Total Produk</h2>
-            <p><?= $totalProduk ?></p>
-        </div>
+        <div class="cards">
+            <div class="card">
+                <h2>📦 Total Produk</h2>
+                <p><?= $totalProduk ?></p>
+            </div>
 
-        <div class="card">
-            <h2>📊 Total Stok</h2>
-            <p><?= $totalStok ?></p>
-        </div>
+            <div class="card">
+                <h2>📊 Total Stok</h2>
+                <p><?= $totalStok ?></p>
+            </div>
 
-        <div class="card">
-            <h2>🔁 Total Transaksi</h2>
-            <p><?= $totalTransaksi ?></p>
+            <div class="card">
+                <h2>🔁 Total Transaksi</h2>
+                <p><?= $totalTransaksi ?></p>
+            </div>
         </div>
     </div>
-</div>
 
 </body>
+
 </html>
