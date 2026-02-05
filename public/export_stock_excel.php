@@ -1,14 +1,29 @@
 <?php
-// === BAGIAN 1: BERSIHKAN BUFFER (PENTING) ===
-// Ini mencegah file dianggap "Corrupt" (rusak), walau warning "Format Differs" tetap ada.
+// === BAGIAN 1: BERSIHKAN BUFFER ===
 error_reporting(0);
 ini_set('display_errors', 0);
-if (ob_get_level()) ob_end_clean(); // Buang sampah buffer sebelumnya
-ob_start(); // Mulai buffer baru
+if (ob_get_level()) ob_end_clean();
+ob_start();
 
 require_once __DIR__ . '/../config/database.php';
 
-// === BAGIAN 2: QUERY DATA (GABUNGAN IN & OUT) ===
+// === LOGIKA CARI LOGO (METODE ABSOLUT LOKAL) ===
+$logo_path = '';
+$possible_paths = [
+    __DIR__ . '/assets/logo.png',
+    __DIR__ . '/assets/logo.jpg',
+    __DIR__ . '/../includes/logo.png'
+];
+
+foreach ($possible_paths as $path) {
+    if (file_exists($path)) {
+        // Ubah backslash (\) jadi slash (/) dan tambahkan protokol file:///
+        $logo_path = 'file:///' . str_replace('\\', '/', $path);
+        break;
+    }
+}
+
+// === BAGIAN 2: QUERY DATA ===
 $query_sql = "
     (SELECT 
         si.date as tanggal, 
@@ -44,7 +59,6 @@ header("Content-Disposition: attachment; filename=\"$filename\"");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-// Bersihkan buffer lagi tepat sebelum kirim HTML
 if (ob_get_length()) ob_clean();
 ?>
 
@@ -54,34 +68,41 @@ if (ob_get_length()) ob_clean();
 <head>
     <title>Laporan Stok</title>
     <style>
-    /* CSS ini akan dibaca Excel sebagai format sel */
     body {
         font-family: Arial, sans-serif;
         font-size: 12px;
     }
 
+    /* STYLE KOP SURAT */
     .kop-text {
-        font-size: 18px;
+        font-size: 24px;
         font-weight: bold;
         color: #ff8800;
+        margin: 0;
     }
 
     .kop-alamat {
-        font-size: 11px;
-        color: #000;
+        font-size: 12px;
+        color: #333;
+        margin: 2px 0;
     }
 
+    /* STYLE TABEL HEADER */
     .table-header {
         background-color: #ff8800;
         color: #ffffff;
         font-weight: bold;
         text-align: center;
         border: 1px solid #000;
+        height: 30px;
+        vertical-align: middle;
     }
 
+    /* STYLE TABEL DATA */
     .table-data {
         border: 1px solid #000;
         vertical-align: middle;
+        padding: 4px;
     }
 
     .text-center {
@@ -99,8 +120,6 @@ if (ob_get_length()) ob_clean();
     .bg-genap {
         background-color: #fff6ec;
     }
-
-    /* Oranye muda pudar */
     </style>
 </head>
 
@@ -108,25 +127,31 @@ if (ob_get_length()) ob_clean();
 
     <table border="0" width="100%">
         <tr>
-            <td colspan="7" align="center" class="kop-text">TOKO HANNA</td>
-        </tr>
-        <tr>
-            <td colspan="7" align="center" class="kop-alamat">Jl. Setramenggala Semingkir, Karangamangu RT 04 RW 03,
+            <td width="100" align="center" valign="middle" style="border-bottom: 5px solid #ff8800;">
+                <?php if ($logo_path): ?>
+                <img src="<?= $logo_path ?>" width="80" height="80" alt="Logo">
+                <?php else: ?>
+                <h2 style="color:#ff8800;">TH</h2>
+                <?php endif; ?>
             </td>
-        </tr>
-        <tr>
-            <td colspan="7" align="center" class="kop-alamat">Kecamatan Purwojati, Kabupaten Banyumas, 53175.</td>
-        </tr>
-        <tr>
-            <td colspan="7" align="center" class="kop-alamat">Telp/WA: +62 858-6942-3141</td>
+
+            <td colspan="6" align="center" valign="middle" style="border-bottom: 5px solid #ff8800;">
+                <span class="kop-text">TOKO HANNA</span><br>
+                <span class="kop-alamat">Jl. Setramenggala Semingkir, Karangamangu RT 04 RW 03,</span><br>
+                <span class="kop-alamat">Kecamatan Purwojati, Kabupaten Banyumas, 53175.</span><br>
+                <span class="kop-alamat" style="font-weight:bold;">Telp/WA: +62 858-6942-3141</span>
+            </td>
         </tr>
         <tr>
             <td colspan="7"></td>
         </tr>
         <tr>
-            <td colspan="7" align="center" style="font-size:14px; font-weight:bold; text-decoration:underline;">
+            <td colspan="7" align="center" style="font-size:16px; font-weight:bold; text-decoration:underline;">
                 LAPORAN RIWAYAT STOK MASUK & KELUAR
             </td>
+        </tr>
+        <tr>
+            <td colspan="7" align="center">Dicetak pada: <?= date('d F Y') ?></td>
         </tr>
         <tr>
             <td colspan="7"></td>
@@ -150,12 +175,9 @@ if (ob_get_length()) ob_clean();
             $no = 1;
             if ($result && mysqli_num_rows($result) > 0):
                 while ($row = mysqli_fetch_assoc($result)):
-                    // Warna selang-seling
                     $bg_class = ($no % 2 == 0) ? 'bg-genap' : 'bg-ganjil';
-
-                    // Warna teks jenis
                     $jenis = strtoupper($row['jenis']);
-                    $color_jenis = ($jenis == 'MASUK') ? '#008000' : '#FF0000'; // Hijau / Merah
+                    $color_jenis = ($jenis == 'MASUK') ? '#008000' : '#FF0000';
             ?>
             <tr class="<?= $bg_class ?>">
                 <td class="table-data text-center"><?= $no++; ?></td>

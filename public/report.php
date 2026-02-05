@@ -72,21 +72,23 @@ $q_top = mysqli_query($conn, "
     background: white;
     padding: 22px 24px;
     border-radius: 14px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
     margin-bottom: 28px;
 }
+
 .report-title {
-    font-size: 20px;
+    font-size: 26px;
     font-weight: bold;
     color: #ff8800;
-    margin-bottom: 10px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
+
 .report-title span.icon {
     font-size: 22px;
 }
+
 .report-sub {
     font-size: 13px;
     color: #777;
@@ -99,11 +101,13 @@ $q_top = mysqli_query($conn, "
     border-collapse: collapse;
     font-size: 14px;
 }
+
 .table-report th,
 .table-report td {
     padding: 8px 10px;
     border-bottom: 1px solid #eee;
 }
+
 .table-report th {
     background: #ffe1bf;
     text-align: left;
@@ -119,6 +123,7 @@ $q_top = mysqli_query($conn, "
     background: #fff2d6;
     color: #e07b00;
 }
+
 .badge-low {
     display: inline-block;
     padding: 3px 8px;
@@ -127,6 +132,7 @@ $q_top = mysqli_query($conn, "
     background: #ffe1e1;
     color: #d32f2f;
 }
+
 .badge-ok {
     display: inline-block;
     padding: 3px 8px;
@@ -135,10 +141,31 @@ $q_top = mysqli_query($conn, "
     background: #e0f5e4;
     color: #2e7d32;
 }
+
+.btn-export {
+    padding: 8px 16px;
+    color: white;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.btn-xls {
+    background: #28a745;
+}
+
+.btn-pdf {
+    background: #d32f2f;
+}
 </style>
 
 <div class="title">Laporan Inventori</div>
 <div class="subtitle">Kumpulan laporan stok, transaksi, dan pemasok di Toko Hanna.</div>
+
+<div style="margin-bottom:15px; display:flex; gap:10px;">
+    <a href="export_report_pdf.php" target="_blank" class="btn-export btn-pdf">📄 Download Semua PDF</a>
+    <a href="export_report_excel.php" target="_blank" class="btn-export btn-xls">📊 Download Semua Excel</a>
+</div>
+
 
 
 <!-- ============================
@@ -163,17 +190,21 @@ $q_top = mysqli_query($conn, "
         </thead>
         <tbody>
             <?php if (!$q_stok || mysqli_num_rows($q_stok) == 0): ?>
-                <tr><td colspan="6" style="text-align:center;">Belum ada data produk.</td></tr>
-            <?php else: $no=1; while($r = mysqli_fetch_assoc($q_stok)): ?>
-                <tr>
-                    <td><?= $no++; ?></td>
-                    <td><?= $r['name']; ?></td>
-                    <td><?= $r['category']; ?></td>
-                    <td><?= $r['stock']; ?></td>
-                    <td><?= $r['unit']; ?></td>
-                    <td>Rp <?= number_format($r['price_sell'],0,',','.'); ?></td>
-                </tr>
-            <?php endwhile; endif; ?>
+            <tr>
+                <td colspan="6" style="text-align:center;">Belum ada data produk.</td>
+            </tr>
+            <?php else: $no = 1;
+                while ($r = mysqli_fetch_assoc($q_stok)): ?>
+            <tr>
+                <td><?= $no++; ?></td>
+                <td><?= $r['name']; ?></td>
+                <td><?= $r['category']; ?></td>
+                <td><?= $r['stock']; ?></td>
+                <td><?= $r['unit']; ?></td>
+                <td>Rp <?= number_format($r['price_sell'], 0, ',', '.'); ?></td>
+            </tr>
+            <?php endwhile;
+            endif; ?>
         </tbody>
     </table>
 </div>
@@ -201,17 +232,21 @@ $q_top = mysqli_query($conn, "
         </thead>
         <tbody>
             <?php if (!$q_in || mysqli_num_rows($q_in) == 0): ?>
-                <tr><td colspan="6" style="text-align:center;">Belum ada transaksi stok masuk.</td></tr>
-            <?php else: $no=1; while($r = mysqli_fetch_assoc($q_in)): ?>
-                <tr>
-                    <td><?= $no++; ?></td>
-                    <td><?= date('d-m-Y', strtotime($r['date'])); ?></td>
-                    <td><?= $r['product_name']; ?></td>
-                    <td><?= $r['qty']; ?></td>
-                    <td><?= $r['unit']; ?></td>
-                    <td><span class="badge-ket"><?= $r['condition_text']; ?></span></td>
-                </tr>
-            <?php endwhile; endif; ?>
+            <tr>
+                <td colspan="6" style="text-align:center;">Belum ada transaksi stok masuk.</td>
+            </tr>
+            <?php else: $no = 1;
+                while ($r = mysqli_fetch_assoc($q_in)): ?>
+            <tr>
+                <td><?= $no++; ?></td>
+                <td><?= date('d-m-Y', strtotime($r['date'])); ?></td>
+                <td><?= $r['product_name']; ?></td>
+                <td><?= $r['qty']; ?></td>
+                <td><?= $r['unit']; ?></td>
+                <td><span class="badge-ket"><?= $r['condition_text']; ?></span></td>
+            </tr>
+            <?php endwhile;
+            endif; ?>
         </tbody>
     </table>
 </div>
@@ -239,17 +274,21 @@ $q_top = mysqli_query($conn, "
         </thead>
         <tbody>
             <?php if (!$q_out || mysqli_num_rows($q_out) == 0): ?>
-                <tr><td colspan="6" style="text-align:center;">Belum ada transaksi stok keluar.</td></tr>
-            <?php else: $no=1; while($r = mysqli_fetch_assoc($q_out)): ?>
-                <tr>
-                    <td><?= $no++; ?></td>
-                    <td><?= date('d-m-Y', strtotime($r['date'])); ?></td>
-                    <td><?= $r['product_name']; ?></td>
-                    <td><?= $r['qty']; ?></td>
-                    <td><?= $r['unit']; ?></td>
-                    <td><span class="badge-ket"><?= $r['condition_text']; ?></span></td>
-                </tr>
-            <?php endwhile; endif; ?>
+            <tr>
+                <td colspan="6" style="text-align:center;">Belum ada transaksi stok keluar.</td>
+            </tr>
+            <?php else: $no = 1;
+                while ($r = mysqli_fetch_assoc($q_out)): ?>
+            <tr>
+                <td><?= $no++; ?></td>
+                <td><?= date('d-m-Y', strtotime($r['date'])); ?></td>
+                <td><?= $r['product_name']; ?></td>
+                <td><?= $r['qty']; ?></td>
+                <td><?= $r['unit']; ?></td>
+                <td><span class="badge-ket"><?= $r['condition_text']; ?></span></td>
+            </tr>
+            <?php endwhile;
+            endif; ?>
         </tbody>
     </table>
 </div>
@@ -276,16 +315,20 @@ $q_top = mysqli_query($conn, "
         </thead>
         <tbody>
             <?php if (!$q_supply || mysqli_num_rows($q_supply) == 0): ?>
-                <tr><td colspan="5" style="text-align:center;">Belum ada data supply.</td></tr>
-            <?php else: $no=1; while($r = mysqli_fetch_assoc($q_supply)): ?>
-                <tr>
-                    <td><?= $no++; ?></td>
-                    <td><?= $r['nama_supplier']; ?></td>
-                    <td><?= $r['alamat']; ?></td>
-                    <td><?= $r['telepon']; ?></td>
-                    <td><?= date('d-m-Y', strtotime($r['tanggal'])); ?></td>
-                </tr>
-            <?php endwhile; endif; ?>
+            <tr>
+                <td colspan="5" style="text-align:center;">Belum ada data supply.</td>
+            </tr>
+            <?php else: $no = 1;
+                while ($r = mysqli_fetch_assoc($q_supply)): ?>
+            <tr>
+                <td><?= $no++; ?></td>
+                <td><?= $r['nama_supplier']; ?></td>
+                <td><?= $r['alamat']; ?></td>
+                <td><?= $r['telepon']; ?></td>
+                <td><?= date('d-m-Y', strtotime($r['tanggal'])); ?></td>
+            </tr>
+            <?php endwhile;
+            endif; ?>
         </tbody>
     </table>
 </div>
@@ -313,17 +356,21 @@ $q_top = mysqli_query($conn, "
         </thead>
         <tbody>
             <?php if (!$q_low || mysqli_num_rows($q_low) == 0): ?>
-                <tr><td colspan="6" style="text-align:center;">Belum ada produk yang menipis.</td></tr>
-            <?php else: $no=1; while($r = mysqli_fetch_assoc($q_low)): ?>
-                <tr>
-                    <td><?= $no++; ?></td>
-                    <td><?= $r['name']; ?></td>
-                    <td><?= $r['category']; ?></td>
-                    <td><?= $r['stock']; ?></td>
-                    <td><?= $r['unit']; ?></td>
-                    <td><span class="badge-low">Menipis</span></td>
-                </tr>
-            <?php endwhile; endif; ?>
+            <tr>
+                <td colspan="6" style="text-align:center;">Belum ada produk yang menipis.</td>
+            </tr>
+            <?php else: $no = 1;
+                while ($r = mysqli_fetch_assoc($q_low)): ?>
+            <tr>
+                <td><?= $no++; ?></td>
+                <td><?= $r['name']; ?></td>
+                <td><?= $r['category']; ?></td>
+                <td><?= $r['stock']; ?></td>
+                <td><?= $r['unit']; ?></td>
+                <td><span class="badge-low">Menipis</span></td>
+            </tr>
+            <?php endwhile;
+            endif; ?>
         </tbody>
     </table>
 </div>
@@ -349,19 +396,24 @@ $q_top = mysqli_query($conn, "
         </thead>
         <tbody>
             <?php if (!$q_top || mysqli_num_rows($q_top) == 0): ?>
-                <tr><td colspan="4" style="text-align:center;">Belum ada data.</td></tr>
-            <?php else: $no=1; while($r = mysqli_fetch_assoc($q_top)): ?>
-                <tr>
-                    <td>#<?= $no++; ?></td>
-                    <td><?= $r['product_name']; ?></td>
-                    <td><?= $r['total_keluar']; ?></td>
-                    <td><?= $r['unit']; ?></td>
-                </tr>
-            <?php endwhile; endif; ?>
+            <tr>
+                <td colspan="4" style="text-align:center;">Belum ada data.</td>
+            </tr>
+            <?php else: $no = 1;
+                while ($r = mysqli_fetch_assoc($q_top)): ?>
+            <tr>
+                <td>#<?= $no++; ?></td>
+                <td><?= $r['product_name']; ?></td>
+                <td><?= $r['total_keluar']; ?></td>
+                <td><?= $r['unit']; ?></td>
+            </tr>
+            <?php endwhile;
+            endif; ?>
         </tbody>
     </table>
 </div>
 
 </div>
 </body>
+
 </html>

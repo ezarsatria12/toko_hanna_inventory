@@ -46,28 +46,38 @@ if (!$supply) {
 
 <style>
 .page-title {
-    font-size: 28px;
+    font-size: 26px;
     font-weight: bold;
     color: #ff8800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
+
 .subtitle {
     margin-top: -5px;
     color: #555;
 }
+
 .card-supply {
     background: white;
     padding: 22px 24px;
     border-radius: 14px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
     margin-bottom: 25px;
 }
-.input-group { margin-bottom: 14px; }
+
+.input-group {
+    margin-bottom: 14px;
+}
+
 .input-group label {
     display: block;
     font-weight: 600;
     color: #444;
     margin-bottom: 5px;
 }
+
 .input-group input,
 .input-group textarea {
     width: 100%;
@@ -75,6 +85,7 @@ if (!$supply) {
     border-radius: 8px;
     border: 1px solid #ccc;
 }
+
 .btn-save {
     background: #ff8800;
     color: white;
@@ -84,6 +95,7 @@ if (!$supply) {
     font-weight: bold;
     cursor: pointer;
 }
+
 .btn-export {
     padding: 8px 16px;
     border-radius: 8px;
@@ -91,22 +103,31 @@ if (!$supply) {
     font-weight: bold;
     text-decoration: none;
 }
-.btn-xls { background:#28a745; }
-.btn-pdf { background:#d32f2f; }
+
+.btn-xls {
+    background: #28a745;
+}
+
+.btn-pdf {
+    background: #d32f2f;
+}
 
 .table-supply {
     width: 100%;
     border-collapse: collapse;
 }
+
 .table-supply th {
     background: #ffe1bf;
     padding: 10px;
     text-align: left;
 }
+
 .table-supply td {
     padding: 10px;
     border-bottom: 1px solid #eee;
 }
+
 .table-supply tr:hover {
     background: #fff5ea;
 }
@@ -119,20 +140,29 @@ if (!$supply) {
     text-decoration: none;
     font-size: 13px;
 }
-.btn-edit { background:#2196F3; }
-.btn-delete { background:#d32f2f; }
+
+.btn-edit {
+    background: #2196F3;
+}
+
+.btn-delete {
+    background: #d32f2f;
+}
 
 /* Popup sukses */
 .popup {
     display: none;
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.35);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.35);
     justify-content: center;
     align-items: center;
     z-index: 9999;
 }
+
 .popup-content {
     background: #fff7f0;
     padding: 24px;
@@ -140,8 +170,9 @@ if (!$supply) {
     border-radius: 14px;
     border: 2px solid #ff8800;
     text-align: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
+
 .popup-btn {
     margin-top: 14px;
     background: #ff8800;
@@ -186,7 +217,7 @@ if (!$supply) {
         <button type="submit" name="submit" class="btn-save">💾 Simpan Data</button>
 
         <?php if ($error): ?>
-            <div style="margin-top:10px; color:#d32f2f;"><?= $error; ?></div>
+        <div style="margin-top:10px; color:#d32f2f;"><?= $error; ?></div>
         <?php endif; ?>
 
     </form>
@@ -197,27 +228,23 @@ if (!$supply) {
         📦 Riwayat Supplier
     </div>
 
-    <div style="margin-bottom:15px; display:flex; gap:10px;">
-        <a href="export_supply_excel.php" class="btn-export btn-xls">📗 Export Excel</a>
-        <a href="export_supply_pdf.php" class="btn-export btn-pdf">📕 Export PDF</a>
-    </div>
 
-<table class="table-supply">
-    <thead>
-        <tr>
-            <th>No</th>
-            <th>Nama Supplier</th>
-            <th>Alamat</th>
-            <th>Telepon</th>
-            <th>Tanggal</th>
-            <th>Aksi</th>
-        </tr>
-    </thead>
-    <tbody>
-    <?php 
-    if ($supply && mysqli_num_rows($supply) > 0):
-        $no = 1;
-        while ($row = mysqli_fetch_assoc($supply)): ?>
+    <table class="table-supply">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Nama Supplier</th>
+                <th>Alamat</th>
+                <th>Telepon</th>
+                <th>Tanggal</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            if ($supply && mysqli_num_rows($supply) > 0):
+                $no = 1;
+                while ($row = mysqli_fetch_assoc($supply)): ?>
             <tr>
                 <td><?= $no++; ?></td>
                 <td><?= htmlspecialchars($row['nama_supplier']); ?></td>
@@ -226,42 +253,44 @@ if (!$supply) {
                 <td><?= date('d-m-Y', strtotime($row['tanggal'])); ?></td>
 
                 <td>
-                    <a href="supplier_edit.php?id=<?= $row['id']; ?>" 
-                       class="btn-action btn-edit">Edit</a>
+                    <a href="supplier_edit.php?id=<?= $row['id']; ?>" class="btn-action btn-edit">Edit</a>
 
-                    <a href="supplier_delete.php?id=<?= $row['id']; ?>" 
-                       onclick="return confirm('Yakin ingin menghapus data ini?')"
-                       class="btn-action btn-delete">Hapus</a>
+                    <a href="supplier_delete.php?id=<?= $row['id']; ?>"
+                        onclick="return confirm('Yakin ingin menghapus data ini?')"
+                        class="btn-action btn-delete">Hapus</a>
                 </td>
             </tr>
-        <?php endwhile; ?>
-    <?php else: ?>
-        <tr><td colspan="6" style="text-align:center;">Belum ada data supplier.</td></tr>
-    <?php endif; ?>
-    </tbody>
-</table>
+            <?php endwhile; ?>
+            <?php else: ?>
+            <tr>
+                <td colspan="6" style="text-align:center;">Belum ada data supplier.</td>
+            </tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
 
-<!-- POPUP SUKSES -->
-<div id="popupSuccess" class="popup">
-    <div class="popup-content">
-        <div style="font-size:48px; color:#ff8800;">✔</div>
-        <h3 style="color:#ff8800;">Berhasil!</h3>
-        <p>Data supplier berhasil disimpan.</p>
-        <button class="popup-btn" onclick="closePopup()">OK</button>
+    <!-- POPUP SUKSES -->
+    <div id="popupSuccess" class="popup">
+        <div class="popup-content">
+            <div style="font-size:48px; color:#ff8800;">✔</div>
+            <h3 style="color:#ff8800;">Berhasil!</h3>
+            <p>Data supplier berhasil disimpan.</p>
+            <button class="popup-btn" onclick="closePopup()">OK</button>
+        </div>
     </div>
-</div>
 
-<script>
-<?php if ($success): ?>
-document.getElementById("popupSuccess").style.display = "flex";
-<?php endif; ?>
+    <script>
+    <?php if ($success): ?>
+    document.getElementById("popupSuccess").style.display = "flex";
+    <?php endif; ?>
 
-function closePopup() {
-    document.getElementById("popupSuccess").style.display = "none";
-    window.location = "supplier.php";
-}
-</script>
+    function closePopup() {
+        document.getElementById("popupSuccess").style.display = "none";
+        window.location = "supplier.php";
+    }
+    </script>
 
 </div>
 </body>
+
 </html>

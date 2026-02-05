@@ -136,10 +136,6 @@
             <i class="fa-solid fa-chart-column"></i> Laporan
         </a>
 
-        <a href="../public/analytics.php"
-            class="<?= basename($_SERVER['PHP_SELF']) == 'analytics.php' ? 'active' : '' ?>">
-            <i class="fa-solid fa-chart-line"></i> Analytics
-        </a>
 
         <a href="../public/logout.php">
             <i class="fa-solid fa-right-from-bracket"></i> Logout
